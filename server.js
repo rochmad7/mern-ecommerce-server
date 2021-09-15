@@ -14,7 +14,7 @@ mongoose
     .catch((err) => console.log(err));
 
 app.use(morgan('dev'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '2mb'}));
 app.use(cors());
 
 readdirSync('./routes').map((r) =>
