@@ -14,9 +14,53 @@ exports.create = async (req, res) => {
             err: err.message,
         });
     }
-}
+};
 
-exports.list = async (req, res) => {
-    let products = await Product.find({});
+exports.listAll = async (req, res) => {
+    let products = await Product.find({})
+        .limit(parseInt(req.params.count))
+        .populate('category')
+        .populate('subcategories')
+        .sort([['createdAt', 'desc']])
+        .exec();
     res.json(products);
-}
+};
+
+exports.remove = async (req, res) => {
+    try {
+        const deleted = await Product.findOneAndRemove({
+            slug: req.params.slug,
+        }).exec();
+        res.json(deleted);
+    } catch (err) {
+        console.log(err);
+        res.status(400).send('Remove product failed');
+    }
+};
+
+exports.read = async (req, res) => {
+    const product = await Product.findOne({ slug: req.params.slug })
+        .populate('category')
+        .populate('subcategories')
+        .exec();
+    res.send(product);
+};
+
+exports.update = async (req, res) => {
+    try {
+        if (req.body.title) {
+            req.body.slug = slugify(req.body.title);
+        }
+        const updated = await Product.findOneAndUpdate(
+            { slug: req.params.slug },
+            req.body,
+            { new: true },
+        ).exec();
+        res.json(updated);
+    } catch (err) {
+        console.log(err);
+        res.status(400).json({
+            err: err.message,
+        });
+    }
+};
