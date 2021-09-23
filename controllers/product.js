@@ -54,7 +54,7 @@ exports.update = async (req, res) => {
         const updated = await Product.findOneAndUpdate(
             { slug: req.params.slug },
             req.body,
-            { new: true },
+            { new: true }
         ).exec();
         res.json(updated);
     } catch (err) {
@@ -63,4 +63,43 @@ exports.update = async (req, res) => {
             err: err.message,
         });
     }
+};
+
+// exports.list = async (req, res) => {
+//     try {
+//         const { sort, order, limit } = req.body;
+//         const products = await Product.find({})
+//             .populate('category')
+//             .populate('subcategories')
+//             .sort([[sort, order]])
+//             .limit(limit)
+//             .exec();
+//         res.json(products);
+//     } catch (err) {
+//         console.log(err);
+//     }
+// };
+
+exports.list = async (req, res) => {
+    try {
+        const { sort, order, page } = req.body;
+        const currentPage = page || 1;
+        const perPage = 3;
+
+        const products = await Product.find({})
+            .skip((currentPage - 1) * perPage)
+            .populate('category')
+            .populate('subcategories')
+            .sort([[sort, order]])
+            .limit(perPage)
+            .exec();
+        res.json(products);
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+exports.productsCount = async (req, res) => {
+    let total = await Product.find({}).estimatedDocumentCount().exec();
+    res.json(total);
 };
