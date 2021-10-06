@@ -7,7 +7,10 @@ const {
     saveAddress,
     applyCoupon,
     createOrder,
-    orders
+    orders,
+    addToWishlist,
+    wishlist,
+    removeFromWishlist,
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -21,5 +24,9 @@ router.post('/user/order', authCheck, createOrder);
 router.get('/user/orders', authCheck, orders);
 
 router.post('/user/cart/coupon', authCheck, applyCoupon);
+
+router.post('/user/wishlist', authCheck, addToWishlist);
+router.get('/user/wishlist', authCheck, wishlist);
+router.delete('/user/wishlist/:productId', authCheck, removeFromWishlist);
 
 module.exports = router;
