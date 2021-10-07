@@ -11,6 +11,7 @@ const {
     addToWishlist,
     wishlist,
     removeFromWishlist,
+    createCashOrder
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -20,6 +21,7 @@ router.get('/user/cart', authCheck, getUserCart);
 router.delete('/user/cart', authCheck, emptyCart);
 router.post('/user/address', authCheck, saveAddress);
 
+router.post('/user/cash-order', authCheck, createCashOrder);
 router.post('/user/order', authCheck, createOrder);
 router.get('/user/orders', authCheck, orders);
 

@@ -4,6 +4,7 @@ const Product = require('../models/product');
 const Coupon = require('../models/coupon');
 const Order = require('../models/order');
 const { wishlist } = require('./user');
+const uniqueid = require('uniqueid');
 
 exports.userCart = async (req, res) => {
     const { cart } = req.body;
@@ -141,6 +142,7 @@ exports.orders = async (req, res) => {
     let user = await User.findOne({ email: req.user.email }).exec();
 
     let userOrders = await Order.find({ orderedBy: user._id })
+        .sort({ createdAt: -1 })
         .populate('products.product')
         .exec();
 
@@ -174,6 +176,57 @@ exports.removeFromWishlist = async (req, res) => {
         { email: req.user.email },
         { $pull: { wishlist: productId } }
     ).exec();
+
+    res.json({ ok: true });
+};
+
+exports.createCashOrder = async (req, res) => {
+    const { COD, couponApplied } = req.body;
+
+    if (!COD) return res.status(400).send('Create cash order failed.');
+
+    const user = await User.findOne({ email: req.user.email }).exec();
+
+    let userCart = await Cart.findOne({ orderedBy: user._id }).exec();
+
+    let finalAmount;
+
+    if (couponApplied && userCart.totalAfterDiscount) {
+        finalAmount = Math.round(userCart.totalAfterDiscount * 100);
+    } else {
+        finalAmount = Math.round(userCart.cartTotal * 100);
+    }
+
+    let newOrder = await new Order({
+        products: userCart.products,
+        paymentIntent: {
+            id: uniqueid(),
+            amount: finalAmount,
+            currency: 'usd',
+            status: 'Cash On Delivery',
+            created: Date.now() / 1000,
+            payment_method_types: ['Cash'],
+        },
+        orderedBy: user._id,
+        orderStatus: 'Cash On Delivery',
+    }).save();
+
+    let bulkOption = userCart.products.map((item) => {
+        return {
+            updateOne: {
+                filter: {
+                    _id: item.product._id,
+                },
+                update: {
+                    $inc: { quantity: -item.count, sold: +item.count },
+                },
+            },
+        };
+    });
+
+    let updated = await Product.bulkWrite(bulkOption, {});
+    console.log('Product quantity-- & Sold++ ', updated);
+    console.log('Order created: ' + newOrder);
 
     res.json({ ok: true });
 };

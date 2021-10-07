@@ -21,7 +21,8 @@
     "mongoose": "^6.0.5",
     "morgan": "^1.10.0",
     "slugify": "^1.6.0",
-    "stripe": "^8.178.0"
+    "stripe": "^8.178.0",
+    "uniqueid": "^1.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.12"
